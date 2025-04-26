@@ -1,0 +1,239 @@
+---
+title: "Wealth, Health, and Gender: A Global Look at Adolescent Inactivity and Child Deprivation"
+subtitle: "Spring 2025 BAA1030 Data Analytics & Story Telling (20074)"
+author: "Kapil Devkant Gupta (A00011783)"
+format:
+  html:
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    df-print: paged
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+    smooth-scroll: true
+    page-layout: full
+    self-contained: true
+---
+
+# Introduction
+This dashboard explores the interconnectedness of economic prosperity, adolescent health, and gender inequality around the world. Using real-world data from UNICEF, we uncover how wealth shapes — but does not fully determine — childhood deprivation and physical inactivity patterns, especially among adolescent girls. The story progresses from highlighting the worst-affected countries to analyzing long-term trends and gender disparities.
+
+```{python}
+# Imports
+import polars as pl
+import pandas as pd
+from plotnine import *
+import matplotlib.pyplot as plt
+import geopandas as gpd
+import plotly.express as px
+
+# Read datasets
+indicator_1 = pl.read_csv('unicef_indicator_1 (1).csv').to_pandas()
+indicator_2 = pl.read_csv('unicef_indicator_2 (1).csv').to_pandas()
+metadata = pl.read_csv('unicef_metadata (1).csv', infer_schema_length=10000, try_parse_dates=True, schema_overrides={"Population, total": pl.Float64}).to_pandas()
+```
+
+
+```{python}
+# Preprocessing steps
+
+## 1️⃣ Top 10 countries with highest female adolescent inactivity
+inactivity_female = indicator_1[indicator_1['sex'] == "Female"]
+inactivity_latest = inactivity_female.sort_values('time_period').groupby('country').last().reset_index()
+top10_inactive = inactivity_latest.sort_values('obs_value', ascending=False).head(10)
+
+## 2️⃣ Deprivation vs GDP scatter data
+deprivation_recent = indicator_2[indicator_2['sex'] == "Total"].sort_values('time_period').groupby('country').last().reset_index()
+deprivation_gdp = deprivation_recent.merge(
+    metadata[['country', 'year', 'GDP per capita (constant 2015 US$)']],
+    left_on=['country', 'time_period'],
+    right_on=['country', 'year'],
+    how='inner'
+).dropna(subset=['GDP per capita (constant 2015 US$)', 'obs_value'])
+deprivation_gdp.rename(columns={'GDP per capita (constant 2015 US$)': 'gdp_per_capita'}, inplace=True)
+
+## 3️⃣ Time series data
+selected_countries = ["India", "Brazil", "United States"]
+time_series_data = indicator_1[
+    (indicator_1['country'].isin(selected_countries)) &
+    (indicator_1['sex'] == "Female")
+]
+
+## 4️⃣ Gender boxplot data
+inactivity_latest_gender = indicator_1.sort_values('time_period').groupby(['country', 'sex']).last().reset_index()
+inactivity_latest_gender = inactivity_latest_gender.dropna(subset=['obs_value'])
+
+```
+
+## 1. Top 10 Countries with Female Adolescent Inactivity
+
+"Where Girls Are Falling Behind: The Global Hotspots of Adolescent Inactivity"
+
+Insight
+A small group of countries faces alarmingly high rates of female adolescent inactivity.
+This signals deeper social, cultural, or infrastructural challenges that limit active lifestyles for girls.
+Targeted interventions in these hotspots could dramatically improve global adolescent health outcomes.
+
+## Visualization
+
+```{python}
+
+top10_plot = (
+    ggplot(top10_inactive, aes(x='reorder(country, obs_value)', y='obs_value'))
+    + geom_bar(stat='identity', fill='skyblue')
+    + coord_flip()
+    + labs(
+        title='Countries with Highest Female Adolescent Inactivity',
+        x='Country',
+        y='Inactivity (%)'
+    )
+    + theme_minimal()
+    + theme(
+        figure_size=(10, 6),
+        plot_title=element_text(size=16, weight='bold', ha='center'),
+        axis_title_x=element_text(size=14),
+        axis_title_y=element_text(size=14),
+        axis_text_x=element_text(size=12),
+        axis_text_y=element_text(size=12)
+    )
+)
+top10_plot
+
+```
+
+## 2. Relationship between GDP per Capita and Child Deprivation
+
+"Does More Money Mean Better Childhoods? The Complex Link Between Wealth and Deprivation"
+
+Insight
+Wealth alone does not guarantee lower child deprivation — though a general negative trend exists. Some countries outperform or underperform relative to their income, revealing important policy lessons.
+
+## Visualization
+
+```{python}
+
+scatter_plot = (
+    ggplot(deprivation_gdp, aes(x='gdp_per_capita', y='obs_value'))
+    + geom_point(color='tomato')
+    + geom_smooth(method='lm', se=False, color='black')
+    + labs(
+        title='Child Deprivation vs GDP per Capita',
+        x='GDP per capita (2015 US$)',
+        y='Deprivation (%)'
+    )
+    + theme_minimal()
+)
+scatter_plot
+
+```
+
+## 3. Trends in Female Adolescent Inactivity for Selected Countries
+
+"Progress or Plateau? Tracking Girls’ Inactivity Rates Over Time"
+
+Insight
+India, Brazil, and the United States show different trajectories in reducing female adolescent inactivity.
+
+## Visualization
+
+```{python}
+
+time_series_plot = (
+    ggplot(time_series_data, aes(x='time_period', y='obs_value', color='country'))
+    + geom_line() + geom_point()
+    + labs(
+        title='Adolescent Inactivity Trends in Selected Countries',
+        x='Year',
+        y='Inactivity (%)'
+    )
+    + theme_minimal()
+)
+time_series_plot
+
+```
+
+## 4. Gender Comparison in Adolescent Inactivity
+
+"Mind the Gap: How Gender Shapes Physical Inactivity Among Adolescents"
+
+Insight
+Adolescent girls consistently report higher inactivity rates than boys, highlighting the need for girl-focused initiatives.
+
+## Visualization
+
+```{python}
+
+box_plot = (
+    ggplot(inactivity_latest_gender, aes(x='sex', y='obs_value', fill='sex'))
+    + geom_boxplot()
+    + scale_fill_manual(values={
+        'Female': 'skyblue',
+        'Male': 'red',
+        'Total': 'purple'
+    })
+    + labs(
+        title='Comparison of Adolescent Inactivity by Gender and Total',
+        x='Gender Category',
+        y='Inactivity (%)'
+    )
+    + theme_minimal()
+)
+box_plot
+
+```
+
+## 5. Global Distribution of Child Deprivation (Globe View)
+
+"Mapping Child Deprivation Around the Globe"
+
+Insight
+Child deprivation clusters heavily in regions like Sub-Saharan Africa and South Asia.
+
+## Visualization
+
+```{python}
+
+#| fig-cap: "Global Child Deprivation Distribution"
+#| echo: false
+#| warning: false
+#| message: false
+
+deprivation_recent_map = deprivation_recent.merge(metadata[['country', 'alpha_3_code']], on='country', how='left')
+deprivation_recent_map['alpha_3_code'] = deprivation_recent_map['alpha_3_code_y']
+deprivation_recent_map = deprivation_recent_map.drop(columns=['alpha_3_code_x', 'alpha_3_code_y'])
+
+fig = px.choropleth(
+    deprivation_recent_map,
+    locations="alpha_3_code",
+    color="obs_value",
+    hover_name="country",
+    color_continuous_scale="OrRd",
+    projection="orthographic",
+    title="Children Experiencing Severe Deprivation (Most Recent Data)"
+)
+
+fig.update_layout(
+    geo=dict(
+        showframe=False,
+        showcoastlines=True,
+        projection_type='orthographic',
+        landcolor='lightgray',
+        oceancolor='lightblue',
+        showocean=True,
+        bgcolor='rgba(0,0,0,0)'
+    ),
+    coloraxis_colorbar=dict(title="Deprivation (%)")
+)
+
+fig
+
+```
+
+## Conclusion
+
+- This analysis examines global patterns of adolescent physical inactivity and child deprivation, revealing deep inequalities across countries and genders.
+- Top 10 countries with the highest female inactivity rates highlight urgent public health needs.
+- Trends and gender disparities point to necessary targeted action to close gaps worldwide.
+
+
