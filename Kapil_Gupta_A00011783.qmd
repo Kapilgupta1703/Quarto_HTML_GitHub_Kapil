@@ -16,7 +16,7 @@ format:
     self-contained: true
 ---
 
-# **Introduction**
+# Introduction
 
 This dashboard explores the interconnectedness of economic prosperity, adolescent health, and gender inequality around the world. Using real-world data from UNICEF, we uncover how wealth shapes — but does not fully determine — childhood deprivation and physical inactivity patterns, especially among adolescent girls.The story progresses from highlighting the worst-affected countries to analyzing long-term trends and gender disparities.
 
@@ -67,7 +67,7 @@ inactivity_latest_gender = inactivity_latest_gender.dropna(subset=['obs_value'])
 
 ```
 
-## **1. Top 10 Countries with Female Adolescent Inactivity**
+## 1. Top 10 Countries with Female Adolescent Inactivity
 
 "Where Girls Are Falling Behind: The Global Hotspots of Adolescent Inactivity"
 
@@ -75,7 +75,7 @@ inactivity_latest_gender = inactivity_latest_gender.dropna(subset=['obs_value'])
 
 A small group of countries faces alarmingly high rates of female adolescent inactivity. This signals deeper social, cultural, or infrastructural challenges that limit active lifestyles for girls. Targeted interventions in these hotspots could dramatically improve global adolescent health outcomes.
 
-## **Visualization**
+ **Visualization**
 
 ```{python}
 
@@ -110,7 +110,7 @@ top10_plot
 
 Wealth alone does not guarantee lower child deprivation — though a general negative trend exists. Some countries outperform or underperform relative to their income, revealing important policy lessons. Understanding these exceptions could inspire more effective development strategies worldwide.
 
-## **Visualization**
+ **Visualization**
 
 ```{python}
 
@@ -129,7 +129,7 @@ scatter_plot
 
 ```
 
-## **3. Trends in Female Adolescent Inactivity for Selected Countries**
+## 3. Trends in Female Adolescent Inactivity for Selected Countries
 
 "Progress or Plateau? Tracking Girls’ Inactivity Rates Over Time"
 
@@ -137,7 +137,7 @@ scatter_plot
 
 India, Brazil, and the United States show different trajectories in reducing female adolescent inactivity. While some countries steadily improve, others show worrying reversals or stagnation. Long-term patterns suggest that national policies and social movements significantly influence outcomes.
 
-## **Visualization**
+**Visualization**
 
 ```{python}
 
@@ -163,7 +163,7 @@ time_series_plot
 
 Across the world, adolescent girls consistently report higher inactivity rates than boys. This persistent gender gap underscores the urgent need for girl-focused sports and health initiatives. Without closing this gap, broader public health goals will remain out of reach.
 
-## **Visualization**
+**Visualization**
 
 ```{python}
 
@@ -194,7 +194,7 @@ box_plot
 
 Child deprivation is not uniformly distributed — it clusters heavily in regions like Sub-Saharan Africa, South Asia, and parts of Latin America.Some high-income countries show near-zero deprivation, while several low and middle-income countries face extremely high rates. This global view underscores how urgent and geographically targeted interventions are necessary to address global childhood inequalities.
 
-## **Visualization**
+**Visualization**
 
 ```{python}
 
